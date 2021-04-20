@@ -18,7 +18,7 @@ const creaLibro = (request, response) => {
 
 export function getRouter() {
   const router = new Router();
-  router.get('/books', miAtrapador);
-  router.post('/books', middlewarePaginaPrivada, creaLibro);
+  router.get('/', miAtrapador);
+  router.post('/', middlewarePaginaPrivada, creaLibro);
   return router;
 }

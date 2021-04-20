@@ -1,13 +1,24 @@
 // const express = require('express');
 import helmet from "helmet";
 import express, { json, urlencoded } from 'express';
+// const rateLimit = require("express-rate-limit");
+import rateLimit from 'express-rate-limit';
 import swaggerUIE from 'swagger-ui-express';
 import {readSync} from "node-yaml"
 import { getRouter as getBooksRouter } from "./routers/books.router.mjs";
 import { miPrimerMiddleware } from "./middlewares/generic.middleware.mjs";
 
 function loadMiddlewares(app) {
-  app.use(helmet());
+    
+  const limiter = rateLimit({
+    windowMs: 30000, // medio minutes
+    max: 5 // limit each IP to 100 requests per windowMs
+  });
+
+  app.use(limiter);
+
+  app.use(helmet.hidePoweredBy());
+  app.use(helmet.xssFilter());
   app.use(express.static('public'));
   app.use(json());
   app.use(urlencoded({ extended: true }));
@@ -20,7 +31,7 @@ function loadMiddlewares(app) {
 
 function loadRouters(app) {
   const booksRouter = getBooksRouter();
-  app.use('/api/1.0.0', booksRouter)
+  app.use('/api/1.0.0/books', booksRouter);
 }
 
 function main() {
