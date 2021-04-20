@@ -1,0 +1,104 @@
+openapi: '3.0.2'
+info:
+  title: "BookStore API"
+  version: "1.0.0"
+servers:
+  - description: "SwaggerHub API Auto Mocking"
+    url: "https://virtserver.swaggerhub.com/ogranada/BookStore/1.0.0"
+  - description: "Local Host"
+    url: http://localhost:3000/api/v1
+paths:
+  /books:
+    get:
+      summary: "Return a list of books"
+      description: "Return a list of books according to the database information in a JSON format."
+      tags:
+        - Books
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/Books"
+              example:
+                - name: "Foundation"
+                  authors:
+                    - name: "Isaac"
+                      lastname: "Asimov"
+                - name: "Harry Potter and the phylosopher stone"
+                  authors:
+                    - name: "J. K."
+                      lastname: "Rowling"
+    post:
+      summary: "Create a new book"
+      description: "Create a new book according specified information."
+      tags:
+        - Books
+      requestBody:
+        description: New Book information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+            example:
+              name: "Foundation"
+              authors:
+                - id: 1
+      responses:
+        201:
+          description: "Created"
+          content:
+            application/json: 
+              schema:
+                $ref: "#/components/schemas/Book"
+              example:
+                - name: "Foundation"
+                  authors:
+                    - name: "Isaac"
+                      lastname: "Asimov"
+components:
+  schemas:
+    Books:
+      type: array
+      items:
+        $ref: '#/components/schemas/Book'
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+        genere:
+          $ref: '#/components/schemas/Genere'
+    Genere:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+    Author:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        lastname:
+          type: string
+        bio:
+          type: string
+
+tags:
+  - name: Books
+    description: All possible books in the store.
