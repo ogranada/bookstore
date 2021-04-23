@@ -1,18 +1,20 @@
 // const express = require('express');
 import helmet from "helmet";
+import dotenv from "dotenv";
 import express, { json, urlencoded } from 'express';
 // const rateLimit = require("express-rate-limit");
 import rateLimit from 'express-rate-limit';
 import swaggerUIE from 'swagger-ui-express';
 import {readSync} from "node-yaml"
 import { getRouter as getBooksRouter } from "./routers/books.router.mjs";
+import { getRouter as getAuthRouter } from "./routers/auth.router.mjs";
 import { miPrimerMiddleware } from "./middlewares/generic.middleware.mjs";
 
 function loadMiddlewares(app) {
-    
+
   const limiter = rateLimit({
-    windowMs: 30000, // medio minutes
-    max: 5 // limit each IP to 100 requests per windowMs
+    windowMs: 360000000,
+    max: 1000 // limit each IP to 100 requests per windowMs
   });
 
   app.use(limiter);
@@ -31,10 +33,13 @@ function loadMiddlewares(app) {
 
 function loadRouters(app) {
   const booksRouter = getBooksRouter();
+  const authRouter = getAuthRouter();
+  app.use('/api/1.0.0/auth', authRouter);
   app.use('/api/1.0.0/books', booksRouter);
 }
 
 function main() {
+  dotenv.config();
   const app = express();
   loadMiddlewares(app);
   loadRouters(app);

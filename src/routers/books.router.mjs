@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { data } from '../database/db.mjs';
-import { middlewarePaginaPrivada } from '../middlewares/privacy.middleware.mjs';
+import { validateToken } from '../middlewares/auth.middleware.mjs';
+// import { middlewarePaginaPrivada } from '../middlewares/privacy.middleware.mjs';
 
 
 
@@ -19,6 +20,6 @@ const creaLibro = (request, response) => {
 export function getRouter() {
   const router = new Router();
   router.get('/', miAtrapador);
-  router.post('/', middlewarePaginaPrivada, creaLibro);
+  router.post('/', validateToken, creaLibro);
   return router;
 }
