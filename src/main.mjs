@@ -9,6 +9,7 @@ import {readSync} from "node-yaml"
 import { getRouter as getBooksRouter } from "./routers/books.router.mjs";
 import { getRouter as getAuthRouter } from "./routers/auth.router.mjs";
 import { miPrimerMiddleware } from "./middlewares/generic.middleware.mjs";
+import database from "./database/db.mjs";
 
 function loadMiddlewares(app) {
 
@@ -38,8 +39,13 @@ function loadRouters(app) {
   app.use('/api/1.0.0/books', booksRouter);
 }
 
-function main() {
+async function main() {
+  console.log('Application started...');
   dotenv.config();
+  console.log('Environment variables loaded...');
+  console.log('Connecting to database...');
+  const db = await database.connect();
+  console.log('Database OK...');
   const app = express();
   loadMiddlewares(app);
   loadRouters(app);

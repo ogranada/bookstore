@@ -8,7 +8,7 @@ export async function authenticate(request, response, next) {
   const username = request.body.username;
   const password = request.body.password;
   const user = await validateUser(username, password);
-  if (user !== undefined) {
+  if (user) {
 
     // Inyectar el token
     const token = jwt.sign({
@@ -33,8 +33,9 @@ export async function authenticate(request, response, next) {
 }
 
 export async function validateToken(request, response, next) {
-  const token = request.headers.authorization.replace('Bearer ', '');
   const CLAVE = process.env.JWT_KEY;
+  const authHeader = request.headers.authorization || '';
+  const token = authHeader.replace('Bearer ', '');
   try {
     if (jwt.verify(token, CLAVE)) {
       next();
