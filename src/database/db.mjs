@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { createModel as createUsersModel } from './user.mjs';
 import { createModel as createBooksModel } from './book.mjs';
+mongoose.set('useFindAndModify', false); //Le agregué esto porque findOneAndUpdate() sin esto está deprecated
 
 const DB_MODELS = {};
 let DATABASE_REFERENCE = null;
@@ -31,7 +32,6 @@ export async function connect(params) {
   });
 }
 
-
 export async function validateUser(username, password) {
   /** @type {mongoose.Model} */
   const Users = DB_MODELS.User;
@@ -58,6 +58,15 @@ export async function createBook(bookInfo) {
   const newBook = Book.create(bookInfo);
   const savedBook = await newBook.save();
   return savedBook.toJSON();
+}
+
+export async function updateBook(id, updateData) { 
+  /** @type {mongoose.Model} */
+  const Book = DB_MODELS.Book;
+  const filter = { _id: id };
+  await Book.findOneAndUpdate(filter, updateData);
+  const doc = await Book.findById(id)
+  return doc.toJSON()
 }
 
 export default {
