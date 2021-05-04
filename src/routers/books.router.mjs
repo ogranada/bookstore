@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import { Router } from 'express';
-import { getBooks, createBook } from '../database/db.mjs';
+import { getBooks, createBook, updateBook } from '../database/db.mjs';
 import { validateToken } from '../middlewares/auth.middleware.mjs';
 
 
@@ -26,7 +26,7 @@ async function getBooksHandler(request, response) {
 };
 
 async function getBookHandler(request, response) {
-  const books = await getBooks({_id: request.params.id});
+  const books = await getBooks({ _id: request.params.id });
   response.json(books);
 };
 
@@ -37,11 +37,18 @@ const creaLibro = async (request, response) => {
   response.json(data);
 };
 
+async function updateBookHandler(request, response) {
+  const book = await updateBook(request.params.id, request.body);
+  response.json(book);
+};
+
 export function getRouter() {
   const router = new Router();
   router.get('/', getBooksHandler);
   router.post('/', creaLibro);
   router.get('/:id', validateToken, getBookHandler);
+  router.patch('/:id', validateToken, updateBookHandler);
   // router.get('/autor', limiter, miAtrapadorAutor);
   return router;
 }
+
