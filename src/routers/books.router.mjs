@@ -39,8 +39,8 @@ const creaLibro = async (request, response) => {
 
 export function getRouter() {
   const router = new Router();
-  router.get('/', validateToken, getBooksHandler);
-  router.post('/', validateToken, creaLibro);
+  router.get('/', getBooksHandler);
+  router.post('/', creaLibro);
   router.get('/:id', validateToken, getBookHandler);
   // router.get('/autor', limiter, miAtrapadorAutor);
   return router;

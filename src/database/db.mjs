@@ -13,7 +13,11 @@ export async function connect(params) {
     DB_AUTHORITY,
     DB_NAME
   } = process.env;
-  const URL = `${DB_SCHEMA}://${DB_USERNAME}:${DB_PASS}@${DB_AUTHORITY}/${DB_NAME}`;
+  const AUTH = DB_USERNAME || DB_PASS
+    ? `${DB_USERNAME}:${DB_PASS}@` 
+    : '';
+  const URL = `${DB_SCHEMA}://${AUTH}${DB_AUTHORITY}/${DB_NAME}`;
+  console.log(URL);
   mongoose.connect(URL, {
     useNewUrlParser: true, useUnifiedTopology: true
   });
@@ -55,7 +59,7 @@ export async function getBooks(filter = {}) {
 export async function createBook(bookInfo) {
   /** @type {mongoose.Model} */
   const Book = DB_MODELS.Book;
-  const newBook = Book.create(bookInfo);
+  const newBook = new Book(bookInfo);
   const savedBook = await newBook.save();
   return savedBook.toJSON();
 }
