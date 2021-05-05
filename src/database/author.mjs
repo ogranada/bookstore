@@ -3,13 +3,13 @@ import SequelizeModule from 'sequelize';
 const DataTypes = SequelizeModule.DataTypes;
 
 export function createModel(sequelize) {
-  return sequelize.define('Book', {
+  return sequelize.define('Author', {
     // Model attributes are defined here
     name: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    description: {
+    lastname: {
       type: DataTypes.STRING,
       allowNull: false
     }

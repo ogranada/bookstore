@@ -1,7 +1,8 @@
-import mongoose from 'mongoose';
+import Sequelize from 'sequelize';
 import { createModel as createUsersModel } from './user.mjs';
+import { createModel as createRolModel } from './rol.mjs';
+import { createModel as createAuthorsModel } from './author.mjs';
 import { createModel as createBooksModel } from './book.mjs';
-mongoose.set('useFindAndModify', false); //Le agregué esto porque findOneAndUpdate() sin esto está deprecated
 
 const DB_MODELS = {};
 let DATABASE_REFERENCE = null;
@@ -11,38 +12,57 @@ export async function connect(params) {
     DB_PASS,
     DB_SCHEMA,
     DB_USERNAME,
-    DB_AUTHORITY,
+    DB_HOST,
+    DB_PORT,
     DB_NAME
   } = process.env;
   const AUTH = DB_USERNAME || DB_PASS
     ? `${DB_USERNAME}:${DB_PASS}@` 
     : '';
-  const URL = `${DB_SCHEMA}://${AUTH}${DB_AUTHORITY}/${DB_NAME}`;
+  const URL = `${DB_SCHEMA}://${AUTH}${DB_HOST}:${DB_PORT}/${DB_NAME}`;
   console.log(URL);
-  mongoose.connect(URL, {
-    useNewUrlParser: true, useUnifiedTopology: true
+  const sequelize = new Sequelize(DB_NAME, DB_USERNAME, DB_PASS, {
+    host: DB_HOST,
+    port: DB_PORT,
+    dialect: 'mariadb'
   });
-  return new Promise((resolve, reject) => {
-    DATABASE_REFERENCE = mongoose.connection;
-    DATABASE_REFERENCE.on('error', (error) => {
-      console.error('connection error:', error);
-      reject(error);
-    });
-    DATABASE_REFERENCE.once('open', function() {
-      DB_MODELS.User = createUsersModel();
-      DB_MODELS.Book = createBooksModel();
-      resolve(DATABASE_REFERENCE);
-    });
-  });
+  try {
+    await sequelize.authenticate();
+    console.log('Connection has been established successfully.');
+    DB_MODELS.Rol = createRolModel(sequelize);
+    // await DB_MODELS.Rol.sync({ force: false });
+
+    DB_MODELS.User = createUsersModel(sequelize);
+    // await DB_MODELS.User.sync({ force: false });
+
+    DB_MODELS.Author = createAuthorsModel(sequelize);
+    // await DB_MODELS.Book.sync({ force: false });
+
+    DB_MODELS.Book = createBooksModel(sequelize);
+    // await DB_MODELS.Book.sync({ force: false });
+
+    DB_MODELS.Rol.hasMany(DB_MODELS.User);
+    DB_MODELS.User.belongsTo(DB_MODELS.Rol);
+
+    DB_MODELS.Book.belongsToMany(DB_MODELS.Author, { through: 'authors_books'});
+    DB_MODELS.Author.belongsToMany(DB_MODELS.Book, { through: 'authors_books'});
+
+    await sequelize.sync({ force: false })
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+    throw error;
+  }
 }
 
 export async function validateUser(username, password) {
-  /** @type {mongoose.Model} */
+  /** @type {Sequelize.Model} */
   const Users = DB_MODELS.User;
   const user = await Users.findOne({
-    username: username,
-    password: password
-  }).exec();
+    where: {
+      username: username,
+      password: password
+    }
+  });
   if (user) {
     return user.toJSON();
   } else {
@@ -51,17 +71,20 @@ export async function validateUser(username, password) {
 }
 
 export async function getBooks(filter = {}) {
-  /** @type {mongoose.Model} */
+  /** @type {Sequelize.Model} */
   const Book = DB_MODELS.Book;
-  return Book.find(filter).exec();
+  return Book.findAll({
+    where: filter,
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+    include: [DB_MODELS.Author]
+  });
 }
 
 export async function createBook(bookInfo) {
   /** @type {mongoose.Model} */
   const Book = DB_MODELS.Book;
-  const newBook = new Book(bookInfo);
-  const savedBook = await newBook.save();
-  return savedBook.toJSON();
+  const savedBook = await Book.create(bookInfo);
+  return savedBook;
 }
 
 export async function updateBook(id, updateData) { 
