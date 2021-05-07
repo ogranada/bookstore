@@ -1,13 +1,12 @@
 import jwt from 'jsonwebtoken';
-
 import { validateUser } from '../database/db.mjs';
-
+import { encriptString } from '../utils.mjs';
 
 export async function authenticate(request, response, next) {
   const CLAVE = process.env.JWT_KEY;
   const username = request.body.username;
   const password = request.body.password;
-  const user = await validateUser(username, password);
+  const user = await validateUser(username, encriptString(password));
   if (user) {
 
     // Inyectar el token

@@ -3,6 +3,7 @@ import { createModel as createUsersModel } from './user.mjs';
 import { createModel as createRolModel } from './rol.mjs';
 import { createModel as createAuthorsModel } from './author.mjs';
 import { createModel as createBooksModel } from './book.mjs';
+import { encriptString } from '../utils.mjs';
 
 const DB_MODELS = {};
 let DATABASE_REFERENCE = null;
@@ -74,6 +75,9 @@ export async function getBooks(filter = {}) {
   /** @type {Sequelize.Model} */
   const Book = DB_MODELS.Book;
   return Book.findAll({
+    order: [
+      ['name', 'ASC']
+    ],
     where: filter,
     attributes: { exclude: ['createdAt', 'updatedAt'] },
     include: [DB_MODELS.Author]
@@ -81,10 +85,32 @@ export async function getBooks(filter = {}) {
 }
 
 export async function createBook(bookInfo) {
-  /** @type {mongoose.Model} */
+  /** @type {Sequelize.Model} */
   const Book = DB_MODELS.Book;
-  const savedBook = await Book.create(bookInfo);
+  const savedBook = await Book.create({
+    ...bookInfo,
+    authors: [
+      {
+        id: 1
+      }
+    ]
+  });
   return savedBook;
+}
+
+/**
+ * Create a new user
+ * @param userInfo user information
+ * @returns user object
+ */
+export async function createUser(userInfo) {
+  /** @type {Sequelize.Model} */
+  const User = DB_MODELS.User;
+  const savedUser = await User.create({
+    ...userInfo,
+    password: encriptString(userInfo.password)
+  });
+  return savedUser;
 }
 
 export async function updateBook(id, updateData) { 
